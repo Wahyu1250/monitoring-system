@@ -159,24 +159,42 @@ function scheduleReset(hour, minute) {
   resetTimeout = setTimeout(() => {
     resetData();
     console.log(`Data telah direset pada jam ${hour}:${minute}`);
-    scheduleReset(hour, minute);
+    scheduleReset(hour, minute); // Penjadwalan ulang setelah reset
   }, timeUntilReset);
 
   console.log(`Reset dijadwalkan untuk ${nextReset.toLocaleString()}`);
+
+  // Simpan waktu reset di localStorage
+  localStorage.setItem('resetHour', hour);
+  localStorage.setItem('resetMinute', minute);
 }
 
 setInterval(updateClock, 1000);
 updateClock();
 
+// Ambil nilai resetHour dan resetMinute dari localStorage saat halaman dimuat
+const storedResetHour = localStorage.getItem('resetHour');
+const storedResetMinute = localStorage.getItem('resetMinute');
+
+// Jika ada nilai yang tersimpan, gunakan nilai tersebut. Jika tidak, gunakan nilai default 0
+const resetHour = storedResetHour ? parseInt(storedResetHour) : 0;
+const resetMinute = storedResetMinute ? parseInt(storedResetMinute) : 0;
+
+// Atur nilai input form dengan nilai dari localStorage atau default
+document.getElementById('resetHour').value = resetHour;
+document.getElementById('resetMinute').value = resetMinute;
+
+// Jadwalkan reset berdasarkan waktu yang disimpan atau default
+scheduleReset(resetHour, resetMinute);
+
+// Event listener untuk tombol "Atur Jadwal"
 const setResetScheduleButton = document.getElementById('setResetSchedule');
 setResetScheduleButton.addEventListener('click', () => {
-  const resetHour = parseInt(document.getElementById('resetHour').value);
-  const resetMinute = parseInt(document.getElementById('resetMinute').value);
-  scheduleReset(resetHour, resetMinute);
-  showWebNotification(`Jadwal reset otomatis diatur ke jam ${resetHour}:${resetMinute}`);
+  const newResetHour = parseInt(document.getElementById('resetHour').value);
+  const newResetMinute = parseInt(document.getElementById('resetMinute').value);
+  scheduleReset(newResetHour, newResetMinute);
+  showWebNotification(`Jadwal reset otomatis diatur ke jam ${newResetHour}:${newResetMinute}`);
 });
-
-scheduleReset(0, 0);
 
 const resetButton = document.getElementById('resetButton');
 resetButton.addEventListener('click', () => {
