@@ -65,7 +65,7 @@ for (let i = 1; i <= 10; i++) {
 function updateTampilan(lantai, data) {
   document.getElementById(`peopleInside-${lantai}`).innerText = data.jumlahOrang || 0;
   document.getElementById(`totalPeopleEntered-${lantai}`).innerText = data.totalOrangMasuk || 0;
-  updateTotalCounts(); // Memanggil updateTotalCounts() setiap kali data berubah
+  updateTotalCounts();
 }
 
 // Fungsi untuk memperbarui data di Firebase menggunakan transaksi
@@ -95,6 +95,13 @@ async function resetData() {
   await rekapHarianRef.update({
     totalOrangDalamGedung: totalPeopleInside,
     totalPengunjung: totalVisitorsToday
+  }).then(() => {
+    // Tampilkan notifikasi setelah data rekap tersimpan
+    showWebNotification('Data rekap harian berhasil disimpan', 'success'); 
+  }).catch((error) => {
+    // Tangani error jika terjadi
+    console.error("Error menyimpan data rekap harian:", error);
+    showWebNotification('Gagal menyimpan data rekap harian', 'error');
   });
 
   // Simpan data saat ini ke rekapHarian sebelum direset
@@ -143,10 +150,10 @@ function updateClock() {
 }
 
 // Fungsi untuk mengatur jadwal reset 
-function scheduleReset(hour, minute) { 
+function scheduleReset(jam, menit) { 
   const now = new Date(); 
   const nextReset = new Date(); 
-  nextReset.setHours(hour, minute, 0, 0); 
+  nextReset.setHours(jam, menit, 0, 0); 
 
   if (now > nextReset) { 
     nextReset.setDate(nextReset.getDate() + 1); 
@@ -158,8 +165,8 @@ function scheduleReset(hour, minute) {
 
   resetTimeout = setTimeout(() => { 
     resetData(); 
-    console.log(`Data telah direset pada jam <span class="math-inline">\{hour\}\:</span>{minute}`); 
-    scheduleReset(hour, minute); // Penjadwalan ulang setelah reset 
+    console.log(`Data telah direset pada jam <span class="math-inline">\{jam\}\:</span>{menit}`); 
+    scheduleReset(jam, menit); // Penjadwalan ulang setelah reset 
   }, timeUntilReset); 
 
   console.log(`Reset dijadwalkan untuk ${nextReset.toLocaleString()}`); 
@@ -169,13 +176,13 @@ setInterval(updateClock, 1000);
 updateClock(); 
 
 // --- Mengambil Jadwal Reset dari Firebase ---
-const resetScheduleRef = db.ref('resetSchedule');
+const settingRef = db.ref('setting');
 
 // Baca jadwal reset dari Firebase saat halaman dimuat
-resetScheduleRef.once('value').then((snapshot) => {
+settingRef.once('value').then((snapshot) => {
     const data = snapshot.val();
-    const resetHour = data ? data.hour : 0; 
-    const resetMinute = data ? data.minute : 0;
+    const resetHour = data ? data.jam : 0; 
+    const resetMinute = data ? data.menit : 0;
 
     // Atur nilai input form dengan nilai dari Firebase
     document.getElementById('resetHour').value = resetHour;
@@ -191,13 +198,13 @@ setResetScheduleButton.addEventListener('click', () => {
     const newResetHour = parseInt(document.getElementById('resetHour').value);
     const newResetMinute = parseInt(document.getElementById('resetMinute').value);
     scheduleReset(newResetHour, newResetMinute); 
-    showWebNotification(`Jadwal reset otomatis diatur ke jam ${newResetHour.toString()}:${newResetMinute.toString()}`);
+    showWebNotification(`Jadwal reset otomatis diatur ke jam ${newResetHour.toString()}:${newResetMinute.toString()}`, 'success');
 
     // Simpan jadwal reset ke Firebase
-    const resetScheduleRef = db.ref('resetSchedule'); 
-    resetScheduleRef.set({
-        hour: newResetHour,
-        minute: newResetMinute
+    const settingRef = db.ref('setting'); 
+    settingRef.set({
+        jam: newResetHour,
+        menit: newResetMinute
     });
 });
 
@@ -205,8 +212,11 @@ const resetButton = document.getElementById('resetButton');
 resetButton.addEventListener('click', () => {
   showConfirmationDialog(
     'Apakah Anda yakin ingin mereset data semua lantai?',
-    resetData,
-    () => console.log('Reset semua lantai dibatalkan')
+    () => { 
+      resetData(); 
+      showWebNotification('Data berhasil direset!', 'success'); 
+    },
+    () => showWebNotification('Reset semua lantai dibatalkan', 'error')
   );
 });
 
@@ -230,7 +240,7 @@ function updateTotalCounts() {
         totalVisitors += data.totalOrangMasuk || 0;
 
         // Cek apakah total pengunjung melebihi batas untuk lantai tersebut
-        const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100; // Default 100 jika belum diatur
+        const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100;
         if (data.totalOrangMasuk >= maxVisitors) {
           showVisitorNotification(lantai, data.totalOrangMasuk);
         }
@@ -328,24 +338,29 @@ showRecapDataButton.addEventListener('click', () => {
   }
 });
 
-function showNotification() {
-  const notification = document.getElementById('notification');
-  notification.classList.remove('hidden');
-
+function showWebNotification() { 
+  webNotification.textContent = message;
+  webNotification.classList.remove('hidden');
   setTimeout(() => {
-    notification.classList.add('hidden');
-  }, 3000);
+    webNotification.classList.add('hidden');
+  }, 3000); 
 }
 
 // --- Notifikasi Web ---
 const webNotification = document.getElementById('web-notification');
 
-function showWebNotification(message) {
+function showWebNotification(message, type = 'info') {
   webNotification.textContent = message;
+  
+  webNotification.classList.remove('success', 'error', 'info'); 
+
+  // Tambahkan class warna sesuai dengan tipe notifikasi
+  webNotification.classList.add(type);
+
   webNotification.classList.remove('hidden');
   setTimeout(() => {
     webNotification.classList.add('hidden');
-  }, 3000); // Sembunyikan notifikasi setelah 3 detik
+  }, 3000); 
 }
 
 // --- Konfirmasi Dialog ---
@@ -358,17 +373,17 @@ const overlay = document.getElementById('overlay');
 function showConfirmationDialog(message, onConfirm, onCancel) {
   confirmationMessage.textContent = message;
   confirmationDialog.classList.remove('hidden');
-  overlay.classList.remove('hidden'); // Tampilkan overlay
+  overlay.classList.remove('hidden');
 
   confirmYesButton.onclick = () => {
     confirmationDialog.classList.add('hidden');
-    overlay.classList.add('hidden'); // Sembunyikan overlay
+    overlay.classList.add('hidden');
     onConfirm();
   };
 
   confirmNoButton.onclick = () => {
     confirmationDialog.classList.add('hidden');
-    overlay.classList.add('hidden'); // Sembunyikan overlay
+    overlay.classList.add('hidden');
     onCancel();
   };
 }
@@ -415,7 +430,7 @@ for (let i = 1; i <= 10; i++) {
     console.log(`Batas pengunjung untuk lantai ${i} diatur ke:`, maxVisitors);
     // Simpan nilai maxVisitors ke localStorage
     localStorage.setItem(`maxVisitors-lantai${i}`, maxVisitors);
-    showWebNotification(`Notifikasi lantai ${i} diatur ke ${maxVisitors} pengunjung`);
+    showWebNotification(`Notifikasi lantai ${i} diatur ke ${maxVisitors} pengunjung`, 'success');
   });
 
   // Event listener untuk tombol "Reset Lantai"
@@ -423,7 +438,7 @@ for (let i = 1; i <= 10; i++) {
     showConfirmationDialog(
       `Apakah Anda yakin ingin mereset data lantai ${i}?`,
       () => resetDataLantai(i),
-      () => console.log('Reset lantai dibatalkan')
+      () => showWebNotification('Reset lantai dibatalkan', 'error')
     );
   });
 }
@@ -437,7 +452,7 @@ function resetDataLantai(lantai) {
     totalOrangKeluar: 0
   });
   console.log(`Data lantai ${lantai} telah direset.`);
-  showWebNotification(`Data lantai ${lantai} telah direset.`);
+  showWebNotification(`Data lantai ${lantai} telah direset.`, 'success');
   // Update tampilan setelah reset
   updateTampilan(lantai, { jumlahOrang: 0, totalOrangMasuk: 0, totalOrangKeluar: 0 });
 }
