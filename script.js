@@ -142,58 +142,63 @@ function updateClock() {
   dateElement.textContent = formattedDate;
 }
 
-// Fungsi untuk mengatur jadwal reset
-function scheduleReset(hour, minute) {
-  const now = new Date();
-  const nextReset = new Date();
-  nextReset.setHours(hour, minute, 0, 0);
+// Fungsi untuk mengatur jadwal reset 
+function scheduleReset(hour, minute) { 
+  const now = new Date(); 
+  const nextReset = new Date(); 
+  nextReset.setHours(hour, minute, 0, 0); 
 
-  if (now > nextReset) {
-    nextReset.setDate(nextReset.getDate() + 1);
-  }
+  if (now > nextReset) { 
+    nextReset.setDate(nextReset.getDate() + 1); 
+  } 
 
-  const timeUntilReset = nextReset.getTime() - now.getTime();
+  const timeUntilReset = nextReset.getTime() - now.getTime(); 
 
-  clearTimeout(resetTimeout);
+  clearTimeout(resetTimeout); 
 
-  resetTimeout = setTimeout(() => {
-    resetData();
-    console.log(`Data telah direset pada jam ${hour}:${minute}`);
-    scheduleReset(hour, minute); // Penjadwalan ulang setelah reset
-  }, timeUntilReset);
+  resetTimeout = setTimeout(() => { 
+    resetData(); 
+    console.log(`Data telah direset pada jam <span class="math-inline">\{hour\}\:</span>{minute}`); 
+    scheduleReset(hour, minute); // Penjadwalan ulang setelah reset 
+  }, timeUntilReset); 
 
-  console.log(`Reset dijadwalkan untuk ${nextReset.toLocaleString()}`);
+  console.log(`Reset dijadwalkan untuk ${nextReset.toLocaleString()}`); 
+} 
 
-  // Simpan waktu reset di localStorage
-  localStorage.setItem('resetHour', hour);
-  localStorage.setItem('resetMinute', minute);
-}
+setInterval(updateClock, 1000); 
+updateClock(); 
 
-setInterval(updateClock, 1000);
-updateClock();
+// --- Mengambil Jadwal Reset dari Firebase ---
+const resetScheduleRef = db.ref('resetSchedule');
 
-// Ambil nilai resetHour dan resetMinute dari localStorage saat halaman dimuat
-const storedResetHour = localStorage.getItem('resetHour');
-const storedResetMinute = localStorage.getItem('resetMinute');
+// Baca jadwal reset dari Firebase saat halaman dimuat
+resetScheduleRef.once('value').then((snapshot) => {
+    const data = snapshot.val();
+    const resetHour = data ? data.hour : 0; 
+    const resetMinute = data ? data.minute : 0;
 
-// Jika ada nilai yang tersimpan, gunakan nilai tersebut. Jika tidak, gunakan nilai default 0
-const resetHour = storedResetHour ? parseInt(storedResetHour) : 0;
-const resetMinute = storedResetMinute ? parseInt(storedResetMinute) : 0;
+    // Atur nilai input form dengan nilai dari Firebase
+    document.getElementById('resetHour').value = resetHour;
+    document.getElementById('resetMinute').value = resetMinute;
 
-// Atur nilai input form dengan nilai dari localStorage atau default
-document.getElementById('resetHour').value = resetHour;
-document.getElementById('resetMinute').value = resetMinute;
-
-// Jadwalkan reset berdasarkan waktu yang disimpan atau default
-scheduleReset(resetHour, resetMinute);
+    // Jadwalkan reset berdasarkan waktu yang diambil dari Firebase
+    scheduleReset(resetHour, resetMinute);
+});
 
 // Event listener untuk tombol "Atur Jadwal"
 const setResetScheduleButton = document.getElementById('setResetSchedule');
 setResetScheduleButton.addEventListener('click', () => {
-  const newResetHour = parseInt(document.getElementById('resetHour').value);
-  const newResetMinute = parseInt(document.getElementById('resetMinute').value);
-  scheduleReset(newResetHour, newResetMinute);
-  showWebNotification(`Jadwal reset otomatis diatur ke jam ${newResetHour}:${newResetMinute}`);
+    const newResetHour = parseInt(document.getElementById('resetHour').value);
+    const newResetMinute = parseInt(document.getElementById('resetMinute').value);
+    scheduleReset(newResetHour, newResetMinute); 
+    showWebNotification(`Jadwal reset otomatis diatur ke jam ${newResetHour.toString()}:${newResetMinute.toString()}`);
+
+    // Simpan jadwal reset ke Firebase
+    const resetScheduleRef = db.ref('resetSchedule'); 
+    resetScheduleRef.set({
+        hour: newResetHour,
+        minute: newResetMinute
+    });
 });
 
 const resetButton = document.getElementById('resetButton');
