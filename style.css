@@ -106,7 +106,7 @@ body {
   /* Floor styles */
   .floors-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Menampilkan 4 lantai per baris */
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
   
@@ -294,32 +294,12 @@ body {
     background-color: #f0f0f0;
   }
   
-  /* Notification Styles */
-  #notification {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #27ae60;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    z-index: 1000;
-    transition: opacity 0.5s ease;
-  }
-  
-  #notification.hidden {
-    opacity: 0;
-    visibility: hidden;
-  }
-  
   /* Web Notification Styles */
   #web-notification {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #27ae60; /* Warna hijau untuk notifikasi sukses */
     color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
@@ -332,6 +312,18 @@ body {
     visibility: hidden;
   }
   
+  #web-notification.success {
+    background-color: #27ae60;
+  }
+  
+  #web-notification.error {
+    background-color: #e74c3c;
+  }
+  
+  #web-notification.info {
+    background-color: #2980b9;
+  }
+
   /* Konfirmasi Dialog Styles */
   #confirmation-dialog {
     position: fixed;
@@ -341,7 +333,7 @@ body {
     background-color: #fff;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    z-index: 1002; /* Pastikan dialog di atas overlay */
+    z-index: 1002;
     padding: 20px;
     text-align: center;
   }
@@ -368,7 +360,7 @@ body {
   }
   
   #confirm-yes {
-    background-color: #27ae60; /* Warna hijau untuk tombol "Ya" */
+    background-color: #27ae60;
     color: #fff;
   }
   
@@ -377,7 +369,7 @@ body {
   }
   
   #confirm-no {
-    background-color: #e74c3c; /* Warna merah untuk tombol "Tidak" */
+    background-color: #e74c3c;
     color: #fff;
   }
   
@@ -392,8 +384,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparan hitam */
-    z-index: 1000; /* Di atas konten utama, tapi di bawah dialog */
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
   }
   
   #overlay.hidden {
@@ -434,7 +426,7 @@ body {
   .lantai-setting h4 {
     font-size: 1.1rem;
     margin: 0;
-    width: 80px; /* Atur lebar agar rapi */
+    width: 80px;
   }
   
   .left-group {
@@ -478,7 +470,7 @@ body {
   }
   
   .lantai-setting .reset-lantai {
-    background-color: #e74c3c; /* Warna merah untuk tombol reset */
+    background-color: #e74c3c; 
     color: #fff;
     border: none;
     padding: 6px 12px;
@@ -494,7 +486,7 @@ body {
   
   /* Reset Options Styles */
   .reset-options {
-    margin-bottom: 20px; /* Mengurangi margin bottom */
+    margin-bottom: 20px;
     border: 1px solid #ccc;
     padding: 20px;
     border-radius: 8px;
@@ -503,7 +495,7 @@ body {
   .reset-options h3 {
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.2rem; /* Sedikit perkecil ukuran font */
+    font-size: 1.2rem; 
     color: #2980b9;
   }
   
@@ -546,7 +538,7 @@ body {
     transition: background-color: 0.3s ease;
     display: block;
     width: fit-content;
-    margin: 20px auto 0 auto; /* Margin top, auto untuk horizontal center */
+    margin: 20px auto 0 auto; 
   }
   
   .reset-button:hover {
@@ -556,7 +548,7 @@ body {
   /* Responsive Design */
   @media (max-width: 1024px) {
     .floors-container {
-      grid-template-columns: repeat(2, 1fr); /* 2 kolom pada resolusi di bawah */
+      grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -572,7 +564,6 @@ body {
 
   .sidebar-title {
     font-size: 1rem;
-    /* Sembunyikan title di layar kecil */
   }
 
   .nav-item a {
@@ -585,7 +576,7 @@ body {
   }
 
   .nav-item a span {
-    display: none; /* Sembunyikan teks menu di layar kecil */
+    display: none; 
   }
 
   .main {
