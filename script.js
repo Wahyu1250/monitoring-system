@@ -47,7 +47,7 @@ for (let i = 1; i <= 10; i++) {
   orangMasukRef.on('value', (snapshot) => {
     if (snapshot.val() === 1) {
       updateData(i, 'masuk');
-      orangMasukRef.set(0); // Reset setelah diproses
+      orangMasukRef.set(0);
     }
   });
 
@@ -56,7 +56,7 @@ for (let i = 1; i <= 10; i++) {
   orangKeluarRef.on('value', (snapshot) => {
     if (snapshot.val() === 1) {
       updateData(i, 'keluar');
-      orangKeluarRef.set(0); // Reset setelah diproses
+      orangKeluarRef.set(0);
     }
   });
 }
@@ -96,10 +96,8 @@ async function resetData() {
     totalOrangDalamGedung: totalPeopleInside,
     totalPengunjung: totalVisitorsToday
   }).then(() => {
-    // Tampilkan notifikasi setelah data rekap tersimpan
     showWebNotification('Data rekap harian berhasil disimpan', 'success'); 
   }).catch((error) => {
-    // Tangani error jika terjadi
     console.error("Error menyimpan data rekap harian:", error);
     showWebNotification('Gagal menyimpan data rekap harian', 'error');
   });
@@ -166,7 +164,7 @@ function scheduleReset(jam, menit) {
   resetTimeout = setTimeout(() => { 
     resetData(); 
     console.log(`Data telah direset pada jam <span class="math-inline">\{jam\}\:</span>{menit}`); 
-    scheduleReset(jam, menit); // Penjadwalan ulang setelah reset 
+    scheduleReset(jam, menit);
   }, timeUntilReset); 
 
   console.log(`Reset dijadwalkan untuk ${nextReset.toLocaleString()}`); 
@@ -351,12 +349,8 @@ const webNotification = document.getElementById('web-notification');
 
 function showWebNotification(message, type = 'info') {
   webNotification.textContent = message;
-  
   webNotification.classList.remove('success', 'error', 'info'); 
-
-  // Tambahkan class warna sesuai dengan tipe notifikasi
   webNotification.classList.add(type);
-
   webNotification.classList.remove('hidden');
   setTimeout(() => {
     webNotification.classList.add('hidden');
@@ -428,7 +422,6 @@ for (let i = 1; i <= 10; i++) {
   setNotificationButton.addEventListener('click', () => {
     const maxVisitors = parseInt(maxVisitorsInput.value);
     console.log(`Batas pengunjung untuk lantai ${i} diatur ke:`, maxVisitors);
-    // Simpan nilai maxVisitors ke localStorage
     localStorage.setItem(`maxVisitors-lantai${i}`, maxVisitors);
     showWebNotification(`Notifikasi lantai ${i} diatur ke ${maxVisitors} pengunjung`, 'success');
   });
@@ -453,7 +446,6 @@ function resetDataLantai(lantai) {
   });
   console.log(`Data lantai ${lantai} telah direset.`);
   showWebNotification(`Data lantai ${lantai} telah direset.`, 'success');
-  // Update tampilan setelah reset
   updateTampilan(lantai, { jumlahOrang: 0, totalOrangMasuk: 0, totalOrangKeluar: 0 });
 }
 
