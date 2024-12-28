@@ -237,10 +237,10 @@ function updateTotalCounts() {
         totalPeople += data.jumlahOrang || 0;
         totalVisitors += data.totalOrangMasuk || 0;
 
-        // Cek apakah total pengunjung melebihi batas untuk lantai tersebut
+        // Cek apakah jumlahOrang melebihi batas untuk lantai tersebut
         const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100;
-        if (data.totalOrangMasuk >= maxVisitors) {
-          showVisitorNotification(lantai, data.totalOrangMasuk);
+        if (data.jumlahOrang >= maxVisitors) {
+          showVisitorNotification(lantai, data.jumlahOrang);
         }
       });
 
@@ -386,9 +386,16 @@ function showConfirmationDialog(message, onConfirm, onCancel) {
 
 const lantaiSettingsContainer = document.getElementById('lantaiSettings');
 
-// Fungsi untuk menampilkan notifikasi
 function showVisitorNotification(lantai, totalVisitors) {
-  alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
+  const lastNotificationCount = parseInt(localStorage.getItem(`lastNotificationCount-lantai${lantai}`)) || 0;
+
+  // Cek apakah jumlah orang sudah bertambah 20 dari notifikasi terakhir
+  if (totalVisitors >= lastNotificationCount + 20) {
+    alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
+    
+    // Update lastNotificationCount setelah notifikasi ditampilkan
+    localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
+  }
 }
 
 // Buat elemen pengaturan notifikasi untuk setiap lantai
