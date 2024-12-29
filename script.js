@@ -392,8 +392,6 @@ function showVisitorNotification(lantai, totalVisitors) {
   // Cek apakah jumlah orang sudah bertambah 20 dari notifikasi terakhir
   if (totalVisitors >= lastNotificationCount + 20) {
     alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
-    
-    // Update lastNotificationCount setelah notifikasi ditampilkan
     localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
   }
 }
@@ -461,3 +459,103 @@ updateTotalCounts();
 db.ref().on('value', () => {
     updateTotalCounts();
 });
+
+// --- Menu Login --- 
+
+const loginButton = document.getElementById('loginButton');
+const loginForm = document.getElementById('loginForm');
+const loginSubmit = document.getElementById('loginSubmit');
+
+loginButton.addEventListener('click', () => {
+    loginForm.classList.toggle('hidden');
+});
+
+// Referensi node 'user' di Firebase
+const userRef = db.ref('user');
+
+// Fungsi untuk menangani submit login 
+loginSubmit.addEventListener('click', () => {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    userRef.once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (username === data.username && password === data.password) { 
+            loginForm.classList.add('hidden');
+            enableNavigation(); 
+            loginButton.textContent = "Logout";
+            loginButton.style.display = "block";
+
+            // Sembunyikan form login 
+            loginForm.style.display = "none";
+            loginButton.addEventListener('click', logout);
+        } else {
+          showWebNotification("Username atau password salah!", "error");
+        }
+    });
+});
+
+// Fungsi untuk mengaktifkan menu navigasi 
+function enableNavigation() {
+    navLinks.forEach(link => {
+        if (link.dataset.target === 'recap' || link.dataset.target === 'setting') {
+            link.parentElement.classList.remove('disabled');
+            link.removeEventListener('click', preventDefault); 
+        }
+    });
+}
+
+// Fungsi untuk menonaktifkan menu navigasi (saat logout) 
+function disableNavigation() {
+    navLinks.forEach(link => {
+        if (link.dataset.target === 'recap' || link.dataset.target === 'setting') {
+            link.parentElement.classList.add('disabled');
+            link.addEventListener('click', preventDefault);
+        }
+    });
+}
+
+// Fungsi untuk menangani logout 
+function logout() {
+    disableNavigation();
+    loginButton.textContent = "Login";
+    loginButton.style.display = "none";
+
+    // Tampilkan kembali form login 
+    loginForm.style.display = "block";
+    loginButton.removeEventListener('click', logout);
+    document.getElementById('username').value = "";
+    document.getElementById('password').value = "";
+}
+
+loginButton.style.display = "none"; 
+function preventDefault(event) {
+    event.preventDefault();
+}
+disableNavigation();
+
+// Fungsi untuk menangani ganti password
+function changePassword() {
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    // 1. Baca data user dari Firebase
+    userRef.once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (data.password === oldPassword) {
+            userRef.update({ password: newPassword })
+                .then(() => {
+                    showWebNotification('Password berhasil diubah!', 'success');
+                })
+                .catch((error) => {
+                    console.error("Error mengubah password:", error);
+                    showWebNotification('Gagal mengubah password', 'error');
+                });
+        } else {
+          showWebNotification("Password lama salah!", "error");
+        }
+    });
+}
+
+// Event listener untuk tombol "Ganti Password"
+const changePasswordButton = document.getElementById('changePasswordButton');
+changePasswordButton.addEventListener('click', changePassword);
