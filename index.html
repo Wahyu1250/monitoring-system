@@ -104,15 +104,29 @@
           <button id="setResetSchedule">Atur Jadwal</button> 
         </div> 
         <div class="change-password">
-            <h3>Ganti Password</h3>
-            <input type="password" id="oldPassword" placeholder="Password Lama">
-            <input type="password" id="newPassword" placeholder="Password Baru">
-            <button id="changePasswordButton">Ganti Password</button>
+          <h3>Ganti Password</h3>
+          <input type="password" id="oldPassword" placeholder="Password Lama">
+          <input type="password" id="newPassword" placeholder="Password Baru">
+          <button id="changePasswordButton">Ganti Password</button>
         </div>
         <button id="resetButton" class="reset-button">Reset Semua Lantai</button> 
       </div> 
     </div> 
   </main> 
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function(registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(function(error) {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
 
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script> 
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script> 
