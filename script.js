@@ -43,22 +43,34 @@ for (let i = 1; i <= 10; i++) {
   });
 
   // Pantau perubahan data orangMasuk
-  const orangMasukRef = db.ref(`lantai${i}/orangMasuk`);
-  orangMasukRef.on('value', (snapshot) => {
-    if (snapshot.val() === 1) {
-      updateData(i, 'masuk');
-      orangMasukRef.set(0);
+const orangMasukPerangkatRef = db.ref(`lantai${i}/orangMasuk`);
+orangMasukPerangkatRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    // Hitung jumlah orang masuk dari semua perangkat
+    const jumlahOrangMasuk = Object.keys(data).length; 
+    for (let j = 0; j < jumlahOrangMasuk; j++) {
+      updateData(i, 'masuk'); 
     }
-  });
+    // Hapus semua data orang masuk setelah diproses
+    orangMasukPerangkatRef.remove(); 
+  }
+});
 
   // Pantau perubahan data orangKeluar
-  const orangKeluarRef = db.ref(`lantai${i}/orangKeluar`);
-  orangKeluarRef.on('value', (snapshot) => {
-    if (snapshot.val() === 1) {
-      updateData(i, 'keluar');
-      orangKeluarRef.set(0);
+const orangKeluarPerangkatRef = db.ref(`lantai${i}/orangKeluar`);
+orangKeluarPerangkatRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    // Hitung jumlah orang keluar dari semua perangkat
+    const jumlahOrangKeluar = Object.keys(data).length;
+    for (let j = 0; j < jumlahOrangKeluar; j++) {
+      updateData(i, 'keluar'); 
     }
-  });
+    // Hapus semua data orang keluar setelah diproses
+    orangKeluarPerangkatRef.remove(); 
+  }
+});
 }
 
 // Fungsi untuk memperbarui tampilan data
@@ -386,13 +398,21 @@ function showConfirmationDialog(message, onConfirm, onCancel) {
 
 const lantaiSettingsContainer = document.getElementById('lantaiSettings');
 
-function showVisitorNotification(lantai, totalVisitors) {
-  const lastNotificationCount = parseInt(localStorage.getItem(`lastNotificationCount-lantai${lantai}`)) || 0;
+// Referensi untuk pengaturan notifikasi di Firebase
+const notificationSettingsRef = db.ref('notificationSettings');
 
-  // Cek apakah jumlah orang sudah bertambah 20 dari notifikasi terakhir
-  if (totalVisitors >= lastNotificationCount + 20) {
-    alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
-    localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
+function showVisitorNotification(lantai, totalVisitors) {
+  const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100;
+
+  // Cek apakah jumlah orang telah mencapai batas maksimal
+  if (totalVisitors >= maxVisitors) {
+      alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
+      localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
+  }
+
+  // Tambahkan logika untuk mereset lastNotificationCount jika jumlah orang turun di bawah batas maksimal
+  if (totalVisitors < maxVisitors) {
+      localStorage.removeItem(`lastNotificationCount-lantai${lantai}`);
   }
 }
 
@@ -417,18 +437,27 @@ for (let i = 1; i <= 10; i++) {
   const setNotificationButton = lantaiSettingDiv.querySelector(`.set-notification`);
   const resetLantaiButton = lantaiSettingDiv.querySelector(`.reset-lantai`);
 
-  // Periksa localStorage saat halaman dimuat
-  const storedMaxVisitors = localStorage.getItem(`maxVisitors-lantai${i}`);
-  if (storedMaxVisitors) {
-    maxVisitorsInput.value = parseInt(storedMaxVisitors);
-  }
+  // Baca pengaturan dari Firebase saat halaman dimuat
+  notificationSettingsRef.child(`lantai${i}`).once('value').then((snapshot) => {
+      const data = snapshot.val();
+      if (data && data.maxVisitors) {
+          maxVisitorsInput.value = data.maxVisitors;
+          localStorage.setItem(`maxVisitors-lantai${i}`, data.maxVisitors);
+      }
+  });
 
   // Event listener untuk tombol "Atur Notifikasi"
   setNotificationButton.addEventListener('click', () => {
-    const maxVisitors = parseInt(maxVisitorsInput.value);
-    console.log(`Batas pengunjung untuk lantai ${i} diatur ke:`, maxVisitors);
-    localStorage.setItem(`maxVisitors-lantai${i}`, maxVisitors);
-    showWebNotification(`Notifikasi lantai ${i} diatur ke ${maxVisitors} pengunjung`, 'success');
+      const maxVisitors = parseInt(maxVisitorsInput.value);
+      console.log(`Batas pengunjung untuk lantai ${i} diatur ke:`, maxVisitors);
+      localStorage.setItem(`maxVisitors-lantai${i}`, maxVisitors);
+
+      // Simpan pengaturan ke Firebase
+      notificationSettingsRef.child(`lantai${i}`).set({
+          maxVisitors: maxVisitors
+      });
+
+      showWebNotification(`Notifikasi lantai ${i} diatur ke ${maxVisitors} pengunjung`, 'success');
   });
 
   // Event listener untuk tombol "Reset Lantai"
