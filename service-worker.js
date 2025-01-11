@@ -4,7 +4,8 @@ const urlsToCache = [
   '/index.html',
   '/style.css',
   '/script.js',
-  // ... tambahkan file lain yang ingin di-cache
+  'https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js',
 ];
 
 self.addEventListener('install', function(event) {
