@@ -404,15 +404,16 @@ const notificationSettingsRef = db.ref('notificationSettings');
 function showVisitorNotification(lantai, totalVisitors) {
   const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100;
 
-  // Cek apakah jumlah orang telah mencapai batas maksimal
-  if (totalVisitors >= maxVisitors) {
-      alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
-      localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
+  // Cek apakah jumlah orang telah mencapai batas maksimal DAN sebelumnya tidak sama dengan batas maksimal
+  if (totalVisitors === maxVisitors && 
+      localStorage.getItem(`lastNotificationCount-lantai${lantai}`) !== totalVisitors) {
+    alert(`Peringatan: Jumlah pengunjung Lantai ${lantai} saat ini ${totalVisitors} telah mencapai batas yang ditentukan!`);
+    localStorage.setItem(`lastNotificationCount-lantai${lantai}`, totalVisitors);
   }
 
-  // Tambahkan logika untuk mereset lastNotificationCount jika jumlah orang turun di bawah batas maksimal
+  // Reset lastNotificationCount jika jumlah orang turun di bawah batas maksimal
   if (totalVisitors < maxVisitors) {
-      localStorage.removeItem(`lastNotificationCount-lantai${lantai}`);
+    localStorage.removeItem(`lastNotificationCount-lantai${lantai}`);
   }
 }
 
@@ -504,23 +505,34 @@ const userRef = db.ref('user');
 
 // Fungsi untuk menangani submit login 
 loginSubmit.addEventListener('click', () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    userRef.once('value').then((snapshot) => {
-        const data = snapshot.val();
-        if (username === data.username && password === data.password) { 
-            loginForm.classList.add('hidden');
-            enableNavigation(); 
-            loginButton.textContent = "Logout";
-            loginButton.style.display = "block";
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  userRef.once('value').then((snapshot) => {
+    const data = snapshot.val();
+    if (username === data.username && password === data.password) { 
+      loginForm.classList.add('hidden');
+      enableNavigation(); 
+      loginButton.textContent = "Logout";
+      loginButton.style.display = "block";
 
-            // Sembunyikan form login 
-            loginForm.style.display = "none";
-            loginButton.addEventListener('click', logout);
-        } else {
-          showWebNotification("Username atau password salah!", "error");
-        }
-    });
+      // Sembunyikan form login 
+      loginForm.style.display = "none";
+      loginButton.addEventListener('click', logout);
+
+      // Tampilkan notifikasi login berhasil
+      showWebNotification("Login berhasil!", "success"); 
+    } else {
+      showWebNotification("Username atau password salah!", "error");
+    }
+  });
+});
+
+// Event listener untuk input password
+const passwordInput = document.getElementById('password');
+passwordInput.addEventListener('keypress', (event) => {
+  if (event.key === "Enter") {
+    loginSubmit.click(); // Memicu klik pada tombol login
+  }
 });
 
 // Fungsi untuk mengaktifkan menu navigasi 
