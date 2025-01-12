@@ -7,19 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet"> 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> 
   <link rel="stylesheet" href="style.css"> 
-  <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script> <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(function(registration) {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch(function(error) {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
-    }
-  </script>
 </head> 
 <body> 
   <div id="web-notification" class="hidden"></div> 
@@ -117,29 +104,15 @@
           <button id="setResetSchedule">Atur Jadwal</button> 
         </div> 
         <div class="change-password">
-          <h3>Ganti Password</h3>
-          <input type="password" id="oldPassword" placeholder="Password Lama">
-          <input type="password" id="newPassword" placeholder="Password Baru">
-          <button id="changePasswordButton">Ganti Password</button>
+            <h3>Ganti Password</h3>
+            <input type="password" id="oldPassword" placeholder="Password Lama">
+            <input type="password" id="newPassword" placeholder="Password Baru">
+            <button id="changePasswordButton">Ganti Password</button>
         </div>
         <button id="resetButton" class="reset-button">Reset Semua Lantai</button> 
       </div> 
     </div> 
   </main> 
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(function(registration) {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch(function(error) {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
-    }
-  </script>
 
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script> 
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script> 
