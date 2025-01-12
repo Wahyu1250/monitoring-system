@@ -96,21 +96,6 @@ function updateData(lantai, status) {
   });
 }
 
-// Periksa IndexedDB saat halaman dimuat
-function checkIndexedDB() {
-  for (let i = 1; i <= 10; i++) {
-    localforage.getItem(`lantai-${i}`).then(data => {
-      if (data) {
-        // Tampilkan data dari IndexedDB
-        updateTampilan(i, data);
-      }
-    });
-  }
-}
-
-// Panggil checkIndexedDB() saat halaman dimuat
-checkIndexedDB();
-
 // Fungsi untuk mereset data di Firebase
 async function resetData() {
   const today = new Date().toISOString().slice(0, 10);
