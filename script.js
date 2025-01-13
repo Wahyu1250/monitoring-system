@@ -52,8 +52,7 @@ orangMasukPerangkatRef.on('value', (snapshot) => {
     for (let j = 0; j < jumlahOrangMasuk; j++) {
       updateData(i, 'masuk'); 
     }
-    // Hapus semua data orang masuk setelah diproses
-    orangMasukPerangkatRef.remove(); 
+    orangMasukPerangkatRef.set(0); 
   }
 });
 
@@ -67,8 +66,7 @@ orangKeluarPerangkatRef.on('value', (snapshot) => {
     for (let j = 0; j < jumlahOrangKeluar; j++) {
       updateData(i, 'keluar'); 
     }
-    // Hapus semua data orang keluar setelah diproses
-    orangKeluarPerangkatRef.remove(); 
+    orangKeluarPerangkatRef.set(0); 
   }
 });
 }
@@ -168,11 +166,8 @@ function scheduleReset(jam, menit) {
   if (now > nextReset) { 
     nextReset.setDate(nextReset.getDate() + 1); 
   } 
-
   const timeUntilReset = nextReset.getTime() - now.getTime(); 
-
   clearTimeout(resetTimeout); 
-
   resetTimeout = setTimeout(() => { 
     resetData(); 
     console.log(`Data telah direset pada jam <span class="math-inline">\{jam\}\:</span>{menit}`); 
@@ -235,34 +230,131 @@ function updateTotalCounts() {
   let totalPeople = 0;
   let totalVisitors = 0;
   const promises = [];
+  const labels = [];
+  const data = [];
 
   for (let i = 1; i <= 10; i++) {
-    const lantaiRef = db.ref(`lantai${i}`);
-    promises.push(lantaiRef.once('value'));
+      const lantaiRef = db.ref(`lantai${i}`);
+      promises.push(lantaiRef.once('value'));
   }
 
   Promise.all(promises)
-    .then((snapshots) => {
-      snapshots.forEach((snapshot, index) => {
-        const lantai = index + 1;
-        const data = snapshot.val() || {};
-        totalPeople += data.jumlahOrang || 0;
-        totalVisitors += data.totalOrangMasuk || 0;
+      .then((snapshots) => {
+          const backgroundColors = [];
+          const borderColors = [];
+          snapshots.forEach((snapshot, index) => {
+              const lantai = index + 1;
+              const lantaiData = snapshot.val() || {};
+              totalPeople += lantaiData.jumlahOrang || 0;
+              totalVisitors += lantaiData.totalOrangMasuk || 0;
+              labels.push(`Lantai ${lantai}`);
+              data.push(lantaiData.jumlahOrang || 0);
 
-        // Cek apakah jumlahOrang melebihi batas untuk lantai tersebut
-        const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 100;
-        if (data.jumlahOrang >= maxVisitors) {
-          showVisitorNotification(lantai, data.jumlahOrang);
-        }
+              // Cek apakah jumlahOrang melebihi batas untuk lantai tersebut
+              const maxVisitors = parseInt(localStorage.getItem(`maxVisitors-lantai${lantai}`)) || 500; // Batas maksimal orang per lantai
+              if (lantaiData.jumlahOrang >= maxVisitors) {
+                  showVisitorNotification(lantai, lantaiData.jumlahOrang);
+                  backgroundColors.push('rgba(255, 99, 132, 0.5)');
+                  borderColors.push('rgba(255, 99, 132, 1)');
+              } else {
+                  backgroundColors.push('rgba(54, 162, 235, 0.5)');
+                  borderColors.push('rgba(54, 162, 235, 1)'); 
+              }
+          });
+
+          document.getElementById('totalPeopleInside').innerText = totalPeople;
+          document.getElementById('totalVisitorsToday').innerText = totalVisitors;
+
+          // Perbarui data dan label grafik
+          floorChart.data.labels = labels;
+          floorChart.data.datasets[0].data = data;
+          floorChart.data.datasets[0].backgroundColor = backgroundColors;
+          floorChart.data.datasets[0].borderColor = borderColors;
+          floorChart.update();
+      })
+      .catch((error) => {
+          console.error("Error getting total counts:", error);
       });
-
-      document.getElementById('totalPeopleInside').innerText = totalPeople;
-      document.getElementById('totalVisitorsToday').innerText = totalVisitors;
-    })
-    .catch((error) => {
-      console.error("Error getting total counts:", error);
-    });
 }
+
+// --- Fungsi Prediksi Lantai ---
+function prediksiLantai() {
+  const today = new Date();
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(today.getDate() - 7); 
+  const sevenDaysAgoString = sevenDaysAgo.toISOString().slice(0, 10);
+  console.log("Tanggal yang diambil:", sevenDaysAgoString);
+  const rekapHarianRef = db.ref(`rekapHarian/${sevenDaysAgoString}`);
+  rekapHarianRef.once('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+          let lantaiRamai = [];
+          let lantaiSepi = [];
+          let maxPengunjung = 0;
+          let minPengunjung = Infinity;
+
+          for (let i = 1; i <= 10; i++) {
+              const lantaiKey = `lantai${i}`;
+              const floorData = data[lantaiKey];
+              const totalOrangMasuk = floorData ? floorData.totalOrangMasuk : 0;
+
+              if (totalOrangMasuk > maxPengunjung) {
+                  lantaiRamai = [i];
+                  maxPengunjung = totalOrangMasuk;
+              } else if (totalOrangMasuk === maxPengunjung) {
+                  lantaiRamai.push(i);
+              }
+
+              if (totalOrangMasuk < minPengunjung) {
+                  lantaiSepi = [i];
+                  minPengunjung = totalOrangMasuk;
+              } else if (totalOrangMasuk === minPengunjung) {
+                  lantaiSepi.push(i);
+              }
+          }
+
+          document.getElementById('lantaiRamai').innerText = `Lantai ${lantaiRamai.join(', ')}`;
+          document.getElementById('lantaiSepi').innerText = `Lantai ${lantaiSepi.join(', ')}`;
+      } else {
+          document.getElementById('lantaiRamai').innerText = "Tidak ada data";
+          document.getElementById('lantaiSepi').innerText = "Tidak ada data";
+      }
+  });
+}
+
+// Panggil fungsi prediksiLantai() saat halaman dimuat dan setiap kali data berubah
+prediksiLantai();
+db.ref().on('value', () => {
+  prediksiLantai();
+});
+
+// --- Inisialisasi Chart.js ---  
+const floorChartCanvas = document.getElementById('floorChart').getContext('2d');  
+const floorChart = new Chart(floorChartCanvas, {  
+    type: 'bar',   
+    data: {  
+        labels: [],   
+        datasets: [{  
+            label: 'Jumlah Orang',  
+            data: [],   
+            backgroundColor: [], 
+            borderColor: [], 
+            borderWidth: 1  
+        }]  
+    },  
+    options: {  
+        scales: {  
+            y: {  
+                beginAtZero: true  
+            }  
+        },
+        plugins: { 
+            legend: {
+                display: false
+            }
+        }
+    }  
+});
 
 // --- Navigasi Menu ---
 const navLinks = document.querySelectorAll('.nav-link');
@@ -346,6 +438,82 @@ showRecapDataButton.addEventListener('click', () => {
       displayRecap(data);
     });
   }
+});
+
+// --- Rekap Mingguan ---
+
+// Fungsi untuk mendapatkan data rekap mingguan
+async function getWeeklyRecapData() {
+  const today = new Date();
+  const labels = [];
+  const data = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const dateString = date.toISOString().slice(0, 10);
+    labels.push(dateString);
+
+    const snapshot = await db.ref(`rekapHarian/${dateString}`).once('value');
+    const harianData = snapshot.val();
+    data.push(harianData ? harianData.totalPengunjung : 0);
+  }
+
+  return { labels, data };
+}
+
+// Fungsi untuk membuat grafik mingguan
+async function createWeeklyChart() {
+  const weeklyChartCanvas = document.getElementById('weeklyChart').getContext('2d');
+  const { labels, data } = await getWeeklyRecapData();
+
+  const weeklyChart = new Chart(weeklyChartCanvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total Pengunjung',
+        data: data,
+        fill: false,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        tension: 0.1
+      }]
+    },
+    options: {  
+      scales: {  
+          y: {  
+              beginAtZero: true  
+          }  
+      },
+      plugins: { 
+          legend: {
+              display: false
+          }
+      }
+    } 
+  });
+}
+
+// Panggil fungsi untuk membuat grafik mingguan saat halaman dimuat
+createWeeklyChart();
+
+// --- Tab Rekap ---
+
+const recapTabs = document.querySelectorAll('.recap-tab');
+const recapContents = document.querySelectorAll('.recap-content');
+
+recapTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Hapus kelas 'active' dari semua tab dan konten
+    recapTabs.forEach(t => t.classList.remove('active'));
+    recapContents.forEach(c => c.classList.remove('active'));
+
+    // Tambahkan kelas 'active' ke tab dan konten yang dipilih
+    tab.classList.add('active');
+    const targetId = tab.dataset.target;
+    document.getElementById(targetId).classList.add('active');
+  });
 });
 
 function showWebNotification() { 
@@ -527,11 +695,19 @@ loginSubmit.addEventListener('click', () => {
   });
 });
 
+// Event listener untuk input username
+const usernameInput = document.getElementById('username');
+usernameInput.addEventListener('keypress', (event) => {
+  if (event.key === "Enter") {
+    document.getElementById('password').focus();
+  }
+});
+
 // Event listener untuk input password
 const passwordInput = document.getElementById('password');
 passwordInput.addEventListener('keypress', (event) => {
   if (event.key === "Enter") {
-    loginSubmit.click(); // Memicu klik pada tombol login
+    loginSubmit.click(); 
   }
 });
 
@@ -579,7 +755,6 @@ function changePassword() {
     const oldPassword = document.getElementById('oldPassword').value;
     const newPassword = document.getElementById('newPassword').value;
 
-    // 1. Baca data user dari Firebase
     userRef.once('value').then((snapshot) => {
         const data = snapshot.val();
         if (data.password === oldPassword) {
