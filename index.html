@@ -1,122 +1,145 @@
-<!DOCTYPE html> 
-<html> 
-<head> 
-  <title>Monitoring jumlah Orang</title> 
-  <meta charset="UTF-8"> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet"> 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> 
-  <link rel="stylesheet" href="style.css"> 
-</head> 
-<body> 
-  <div id="web-notification" class="hidden"></div> 
-  <div id="confirmation-dialog" class="hidden"> 
-    <div class="confirmation-content"> 
-      <p id="confirmation-message"></p> 
-      <div class="confirmation-buttons"> 
-        <button id="confirm-yes">Ya</button> 
-        <button id="confirm-no">Tidak</button> 
-      </div> 
-    </div> 
-  </div> 
-  <aside class="sidebar"> 
-    <div class="sidebar-header"> 
-      <h3 class="sidebar-title">Smart Building</h3> 
-    </div> 
-    <ul class="nav"> 
-      <li class="nav-item active"><a href="#" class="nav-link" data-target="dashboard"><i class="fas fa-home"></i> Dashboard</a></li> 
-      <li class="nav-item"><a href="#" class="nav-link" data-target="recap"><i class="fas fa-table"></i> Rekap Data</a></li> 
-      <li class="nav-item"><a href="#" class="nav-link" data-target="setting"><i class="fas fa-cog"></i> Setting</a></li> 
-    </ul> 
-
-    <div class="login-container">  
-      <button id="loginButton">Login</button> 
-      <div id="loginForm" class="hidden"> 
-        <input type="text" id="username" placeholder="Username"> 
-        <input type="password" id="password" placeholder="Password"> 
-        <button id="loginSubmit">Login</button> 
-      </div> 
-    </div> 
-  </aside> 
-
-  <main class="main"> 
-    <div id="overlay" class="hidden"></div> 
-    <header class="header"> 
-      <div class="container header-content"> 
-        <div> 
-          <h1 class="header-title">Monitoring Jumlah Orang</h1> 
-          <p class="header-subtitle">Tower 2 ITS</p> 
-        </div> 
-        <div class="clock-date-container"> 
-          <h2 id="clock"></h2> 
-          <h3 id="date"></h3> 
-        </div> 
-      </div> 
-    </header> 
-
-    <div id="dashboard" class="page active"> 
-      <div class="container"> 
-        <div class="top-section"> 
-          <div class="data-card"> 
-            <div class="card-label"> 
-              <h3 id="totalPeopleInside">0</h3> 
-              <p>Orang Dalam Gedung</p> 
-            </div> 
-          </div> 
-          <div class="data-card"> 
-            <div class="card-label"> 
-              <h3 id="totalVisitorsToday">0</h3> 
-              <p>Pengunjung Hari Ini</p> 
-            </div> 
-          </div> 
-        </div> 
-        <div class="floors-container"> 
-        </div> 
-      </div> 
-    </div> 
-    <div id="recap" class="page"> 
-      <div class="container"> 
-        <div class="recap-header"> 
-          <h3>Rekap Data Harian</h3> 
-          <div class="recap-date-picker"> 
-            <label for="recapDate">Pilih Tanggal:</label> 
-            <input type="date" id="recapDate"> 
-            <button id="showRecapData">Tampilkan</button> 
-          </div> 
-        </div> 
-        <div id="recapData" class="recap-data"></div> 
-      </div> 
-    </div> 
-    <div id="setting" class="page"> 
-      <div id="overlay" class="hidden"></div> 
-      <div class="container"> 
-        <div class="notification-settings"> 
-          <h3>Pengaturan Notifikasi Batas Maximal Orang Setiap Lantai</h3> 
-          <div id="lantaiSettings"> 
-          </div> 
-        </div> 
-        <div class="reset-options"> 
-          <h3>Pengaturan Reset Otomatis Harian</h3> 
-          <label for="resetHour">Jam:</label> 
-          <input type="number" id="resetHour" min="0" max="23" value="0"> 
-          <label for="resetMinute">Menit:</label> 
-          <input type="number" id="resetMinute" min="0" max="59" value="0"> 
-          <button id="setResetSchedule">Atur Jadwal</button> 
-        </div> 
-        <div class="change-password">
-            <h3>Ganti Password</h3>
-            <input type="password" id="oldPassword" placeholder="Password Lama">
-            <input type="password" id="newPassword" placeholder="Password Baru">
-            <button id="changePasswordButton">Ganti Password</button>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monitoring jumlah Orang</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="web-notification" class="hidden"></div>
+    <div id="confirmation-dialog" class="hidden">
+        <div class="confirmation-content">
+            <p id="confirmation-message"></p>
+            <div class="confirmation-buttons">
+                <button id="confirm-yes">Ya</button>
+                <button id="confirm-no">Tidak</button>
+            </div>
         </div>
-        <button id="resetButton" class="reset-button">Reset Semua Lantai</button> 
-      </div> 
-    </div> 
-  </main> 
+    </div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Smart Building</h3>
+        </div>
+        <ul class="nav">
+            <li class="nav-item active"><a href="#" class="nav-link" data-target="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="#" class="nav-link" data-target="recap"><i class="fas fa-table"></i> Rekap Data</a></li>
+            <li class="nav-item"><a href="#" class="nav-link" data-target="setting"><i class="fas fa-cog"></i> Setting</a></li>
+        </ul>
 
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script> 
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script> 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
-  <script src="script.js"></script> 
-</body> 
+        <div class="login-container">
+            <button id="loginButton">Login</button>
+            <div id="loginForm" class="hidden">
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button id="loginSubmit">Login</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div id="overlay" class="hidden"></div>
+        <header class="header">
+            <div class="container header-content">
+                <div>
+                    <h1 class="header-title">Monitoring Jumlah Orang</h1>
+                    <p class="header-subtitle">Tower 2 ITS</p>
+                </div>
+                <div class="clock-date-container">
+                    <h2 id="clock"></h2>
+                    <h3 id="date"></h3>
+                </div>
+            </div>
+        </header>
+
+        <div id="dashboard" class="page active">
+            <div class="container">
+                <div class="top-section">
+                    <div class="data-cards-container"> 
+                        <div class="data-card"> 
+                            <div class="card-label"> 
+                                <h3 id="totalPeopleInside">0</h3> 
+                                <p>Orang Dalam Gedung</p> 
+                            </div> 
+                        </div> 
+                        <div class="data-card"> 
+                            <div class="card-label"> 
+                                <h3 id="totalVisitorsToday">0</h3> 
+                                <p>Pengunjung Hari Ini</p> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <canvas id="floorChart"></canvas>
+                    <div class="prediksi-container">
+                      <div class="prediksi-items">
+                        <h3>Prediksi</h3> 
+                          <div class="prediksi-item">
+                              <h3>Teramai <span id="lantaiRamai">X</span></h3> 
+                          </div>
+                          <div class="prediksi-item">
+                              <h3>Tersepi <span id="lantaiSepi">Y</span></h3>
+                          </div>
+                        </div>
+                      </div>
+                   </div>
+                <div class="floors-container"></div>
+            </div> 
+        </div>
+
+        <div id="recap" class="page">
+            <div class="container">
+                <div class="recap-header">
+                    <h3>Rekap Data</h3>
+                    <div class="recap-tabs">
+                        <button class="recap-tab active" data-target="recapHarian">Harian</button>
+                        <button class="recap-tab" data-target="recapMingguan">Mingguan</button>
+                    </div>
+                </div>
+                <div id="recapHarian" class="recap-content active">
+                    <div class="recap-date-picker">
+                        <label for="recapDate">Pilih Tanggal:</label>
+                        <input type="date" id="recapDate">
+                        <button id="showRecapData">Tampilkan</button>
+                    </div>
+                    <div id="recapData" class="recap-data"></div>
+                </div>
+                <div id="recapMingguan" class="recap-content">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="setting" class="page">
+            <div id="overlay" class="hidden"></div>
+            <div class="container">
+                <div class="notification-settings">
+                    <h3>Pengaturan Notifikasi Batas Maximal Orang Setiap Lantai</h3>
+                    <div id="lantaiSettings"></div>
+                </div>
+                <div class="reset-options">
+                    <h3>Pengaturan Reset Otomatis Harian</h3>
+                    <label for="resetHour">Jam:</label>
+                    <input type="number" id="resetHour" min="0" max="23" value="0">
+                    <label for="resetMinute">Menit:</label>
+                    <input type="number" id="resetMinute" min="0" max="59" value="0">
+                    <button id="setResetSchedule">Atur Jadwal</button>
+                </div>
+                <div class="change-password">
+                    <h3>Ganti Password</h3>
+                    <input type="password" id="oldPassword" placeholder="Password Lama">
+                    <input type="password" id="newPassword" placeholder="Password Baru">
+                    <button id="changePasswordButton">Ganti Password</button>
+                </div>
+                <button id="resetButton" class="reset-button">Reset Semua Lantai</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script> 
+</body>
 </html>
