@@ -281,7 +281,7 @@ function updateTotalCounts() {
 function prediksiLantai() {
   const today = new Date();
   const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 7); 
+  sevenDaysAgo.setDate(today.getDate() - 6); 
   const sevenDaysAgoString = sevenDaysAgo.toISOString().slice(0, 10);
   console.log("Tanggal yang diambil:", sevenDaysAgoString);
   const rekapHarianRef = db.ref(`rekapHarian/${sevenDaysAgoString}`);
